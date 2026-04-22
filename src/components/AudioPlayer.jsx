@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, ArrowRightCircle, FastForward, Rewind, Loader2 } from 'lucide-react';
 
-const AudioPlayer = ({ episode, onNext, onPrev, hasNext, hasPrev }) => {
-    const audioRef = useRef(null);
+const AudioPlayer = ({ episode, audioRef, onNext, onPrev, hasNext, hasPrev }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isBuffering, setIsBuffering] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -103,6 +102,8 @@ const AudioPlayer = ({ episode, onNext, onPrev, hasNext, hasPrev }) => {
                 src={episode.mp3}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleEnded}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 onWaiting={() => setIsBuffering(true)}
                 onCanPlay={() => setIsBuffering(false)}
                 onLoadStart={() => setIsBuffering(true)}

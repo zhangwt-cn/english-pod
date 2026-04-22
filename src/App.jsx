@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import EpisodeList from './components/EpisodeList'
 import AudioPlayer from './components/AudioPlayer'
 import Transcript from './components/Transcript'
 import { ThemeProvider } from './components/ThemeProvider'
 import ThemeToggle from './components/ThemeToggle'
-import Footer from './components/Footer'
 import UserGuideModal from './components/UserGuideModal'
+import Footer from './components/Footer'
 import { BookOpen } from 'lucide-react'
 // We will import data, assuming it exists (might need to handle if script hasn't finished, but we know it generated episodes.json)
 import episodesData from './data/episodes.json'
@@ -14,11 +14,18 @@ function AppContent() {
   const [currentEpisodeId, setCurrentEpisodeId] = useState(episodesData[0]?.id || 0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const audioRef = useRef(null);
 
   const currentEpisode = useMemo(() =>
     episodesData.find(ep => ep.id === currentEpisodeId) || episodesData[0],
     [currentEpisodeId]
   );
+
+  const handleSeek = useCallback((time) => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = time;
+    audioRef.current.play().catch(() => { });
+  }, []);
 
   const handleNextEpisode = () => {
     const currentIndex = episodesData.findIndex(ep => ep.id === currentEpisodeId);
@@ -125,17 +132,18 @@ function AppContent() {
                 </h2>
               </div>
 
-              <Transcript episode={currentEpisode} />
+              <Transcript episode={currentEpisode} audioRef={audioRef} onSeek={handleSeek} />
             </div>
           </div>
         </div>
 
         {/* Bottom Bar: Player + Footer */}
         <div className="flex-none z-30 glass-panel border-t border-zinc-200 dark:border-zinc-800/50 backdrop-blur-2xl bg-white/80 dark:bg-zinc-900/95 flex flex-col">
-          <div className="p-4 lg:p-6 pb-2 lg:pb-4">
+          <div className="p-4 lg:p-6 pb-2 lg:pb-3">
             <div className="max-w-4xl mx-auto">
               <AudioPlayer
                 episode={currentEpisode}
+                audioRef={audioRef}
                 onNext={handleNextEpisode}
                 onPrev={handlePreviousEpisode}
                 hasNext={episodesData.findIndex(ep => ep.id === currentEpisodeId) < episodesData.length - 1}
@@ -143,7 +151,6 @@ function AppContent() {
               />
             </div>
           </div>
-
           <Footer />
         </div>
 
